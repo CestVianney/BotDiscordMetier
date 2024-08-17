@@ -34,6 +34,3 @@ def get_metier_par_niveau(metier, niveau):
     data = cur.fetchall()
     conn.close()
     return [row[0] for row in data]
-
-get_metier_par_niveau('Alchimiste', 1)
-# insert_data('cestvianney', 'Alchimiste', 200)
