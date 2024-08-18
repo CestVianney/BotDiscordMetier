@@ -1,10 +1,13 @@
 import discord
-import usersmetiersDb as db
-import ajoutermetier 
-import recherchermetier
-
+import db.usersmetiersDb as db
+import commands.ajoutermetier as ajoutermetier 
+import commands.recherchermetier as recherchermetier
+import commands.ajouterpassagedonjon as ajouterpassagedonjon
+import commands.supprimerpassagedonjon as supprimerpassagedonjon
+import commands.rechercherpassagedonjon as rechercherpassagedonjon
 from discord.ext import commands
 from dotenv import load_dotenv
+from utils.donjons import options
 
 import os
 
@@ -56,4 +59,39 @@ async def rechercherMetier(interaction: discord.Interaction):
     view = recherchermetier.MetierSelectView()
     await interaction.response.send_message("Vous recherchez le métier :", view=view, ephemeral=True)
 
+@bot.tree.command(name="ajouter-passage-donjon", description="Ajoute un donjon pour l'utilisateur")
+async def ajouterPassageDonjon(interaction: discord.Interaction):
+    donjondFromDb = db.get_donjons_from_user(interaction.user.name)
+    available_options = [option for option in options if option.label not in donjondFromDb]
+    if not available_options:
+        await interaction.response.send_message("Vous pouvez déjà passer tous les donjons !", ephemeral=True)
+        return
+    view = ajouterpassagedonjon.DonjonSelectView(available_options)
+    await interaction.response.send_message("Choisissez les donjons que vous pouvez faire passer :", view=view, ephemeral=True)
+
+@bot.tree.command(name="mes-passages-donjons", description="Renvoie les donjons que l'utilisateur peut passer")
+async def mesPassagesDonjons(interaction: discord.Interaction):
+    donjons = db.get_donjons_from_user(interaction.user.name)
+    if not donjons:
+        await interaction.response.send_message("Vous n'avez renseigné aucun passage de donjon.", ephemeral=True)
+        return
+    donjons_text = "\n".join(donjons)
+    await interaction.response.send_message(donjons_text, ephemeral=True)
+
+@bot.tree.command(name="supprimer-passage-donjon", description="Supprime une liste de donjons pour l'utilisateur")
+async def supprimerPassageDonjon(interaction: discord.Interaction):
+    donjons = db.get_donjons_from_user(interaction.user.name)
+    if not donjons:
+        await interaction.response.send_message("Vous n'avez renseigné aucun passage de donjon.", ephemeral=True)
+        return
+    view = supprimerpassagedonjon.DonjonSuppressionView(donjons)
+    await interaction.response.send_message("Choisissez les donjons à supprimer :", view=view, ephemeral=True)
+
+@bot.tree.command(name="rechercher-passage-donjon", description="Recherche les utilisateurs qui peuvent passer un donjon")
+async def rechercherPassageDonjon(interaction: discord.Interaction):
+    donjons = options 
+    view = rechercherpassagedonjon.DonjonSelectView(donjons)
+    await interaction.response.send_message("Vous recherchez le donjon :", view=view, ephemeral=True)
+
+db.instantiate_db()
 bot.run(TOKEN)

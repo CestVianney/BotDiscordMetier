@@ -1,6 +1,5 @@
 import discord
-import usersmetiersDb as db
-from discord.ext import commands
+import db.usersmetiersDb as db
 from discord.ui import View, Button, Modal, TextInput, Select
 
 class MetierNiveauModal(Modal):

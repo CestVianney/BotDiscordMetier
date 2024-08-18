@@ -1,6 +1,6 @@
 import discord
-from discord.ui import View, Button, Modal, TextInput, Select
-import usersmetiersDb as db
+from discord.ui import View, Modal, TextInput, Select
+import db.usersmetiersDb as db
 
 class NiveauModal(Modal):
     def __init__(self, metier):
@@ -19,7 +19,7 @@ class NiveauModal(Modal):
         
         guild = interaction.guild
         members = []
-        async for member in guild.fetch_members(limit=None):  # Récupérer tous les membres de la guilde
+        async for member in guild.fetch_members(limit=None):
             members.append(member)
         
         tagged_users = []
