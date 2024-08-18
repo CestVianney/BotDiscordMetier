@@ -5,6 +5,10 @@ import commands.recherchermetier as recherchermetier
 import commands.ajouterpassagedonjon as ajouterpassagedonjon
 import commands.supprimerpassagedonjon as supprimerpassagedonjon
 import commands.rechercherpassagedonjon as rechercherpassagedonjon
+import commands.ajouterpassagequete as ajouterpassagequete
+import commands.supprimerpassagequete as supprimerpassagequete
+import commands.rechercherpassagequete as rechercherpassagequete
+import commands.supprimerqueteexistante as supprimerqueteexistante
 from discord.ext import commands
 from dotenv import load_dotenv
 from utils.donjons import options
@@ -92,6 +96,71 @@ async def rechercherPassageDonjon(interaction: discord.Interaction):
     donjons = options 
     view = rechercherpassagedonjon.DonjonSelectView(donjons)
     await interaction.response.send_message("Vous recherchez le donjon :", view=view, ephemeral=True)
+
+@bot.tree.command(name="creer-quete", description="Crée une quête")
+async def creerQuete(interaction: discord.Interaction, nom_quete: str):
+    db.insert_quete(nom_quete)
+    await interaction.response.send_message(f"Création de la quête : {nom_quete}", ephemeral=True)
+
+@bot.tree.command(name="quetes-existantes", description="Renvoie les quêtes existantes")
+async def quetesExistantes(interaction: discord.Interaction):
+    quetes = db.get_quetes_existantes()
+    quetes.sort()
+    if not quetes:
+        await interaction.response.send_message("Il n'y a pas de quête existante.", ephemeral=True)
+        return
+    quetes_text = "\n".join(quetes)
+    await interaction.response.send_message(quetes_text, ephemeral=True)
+
+@bot.tree.command(name="supprimer-quete-existante", description="Supprime une quête existante")
+async def supprimerQueteExistante(interaction: discord.Interaction):
+    if not interaction.user.guild_permissions.administrator:
+        await interaction.response.send_message("Vous n'êtes pas autorisé à supprimer une quête.", ephemeral=True)
+        return
+    quetes = db.get_quetes_existantes()
+    if not quetes:
+        await interaction.response.send_message("Il n'y a pas de quête existante.", ephemeral=True)
+        return
+    view = supprimerqueteexistante.SupprimerQueteExistanteView(quetes)
+    await interaction.response.send_message("Choisissez la quête à supprimer :", view=view, ephemeral=True)
+
+@bot.tree.command(name="ajouter-passage-quete", description="Ajoute un passage de quête pour l'utilisateur")
+async def ajouterPassageQuete(interaction: discord.Interaction):
+    quetes = db.get_quetes_existantes()
+    if not quetes:
+        await interaction.response.send_message("Aucune quête n'a été créée ! Utilisez /creer-quete", ephemeral=True)
+        return
+    view = ajouterpassagequete.QueteSelectView(quetes)
+    await interaction.response.send_message("Choisissez la quête pour laquelle vous avez un passage à proposer :", view=view, ephemeral=True)
+
+@bot.tree.command(name="mes-passages-quetes", description="Renvoie les quêtes pour lesquelles l'utilisateur a un passage")
+async def mesPassagesQuetes(interaction: discord.Interaction):
+    quetes = db.get_quetes_from_user(interaction.user.name)
+    if not quetes:
+        await interaction.response.send_message("Vous n'avez renseigné aucun passage de quête.", ephemeral=True)
+        return
+    quetes_text = "\n".join(quetes)
+    await interaction.response.send_message(quetes_text, ephemeral=True)
+
+
+@bot.tree.command(name="supprimer-passage-quete", description="Supprime un passage de quête pour l'utilisateur")
+async def supprimerPassageQuete(interaction: discord.Interaction):
+    quetes = db.get_quetes_from_user(interaction.user.name)
+    if not quetes:
+        await interaction.response.send_message("Vous n'avez renseigné aucun passage de quête.", ephemeral=True)
+        return
+    view = supprimerpassagequete.QueteSuppressionView(quetes)
+    await interaction.response.send_message("Choisissez la quête à supprimer :", view=view, ephemeral=True)
+
+@bot.tree.command(name="rechercher-passage-quete", description="Recherche les utilisateurs qui peuvent passer une quête")
+async def rechercherPassageQuete(interaction: discord.Interaction):
+    quetes = db.get_quetes_existantes()
+    if not quetes:
+        await interaction.response.send_message("Aucune quête n'a été créée ! Utilisez /creer-quete", ephemeral=True)
+        return
+    view = rechercherpassagequete.RechercherPassageQueteView(quetes)
+    await interaction.response.send_message("Vous recherchez la quête :", view=view, ephemeral=True)
+
 
 db.instantiate_db()
 bot.run(TOKEN)
