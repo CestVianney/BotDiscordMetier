@@ -9,13 +9,12 @@ import commands.ajouterpassagequete as ajouterpassagequete
 import commands.supprimerpassagequete as supprimerpassagequete
 import commands.rechercherpassagequete as rechercherpassagequete
 import commands.supprimerqueteexistante as supprimerqueteexistante
+from keep_alive import keep_alive
 from discord.ext import commands
-from dotenv import load_dotenv
 from utils.donjons import options
 
 import os
 
-load_dotenv()
 intents = discord.Intents.default()
 intents.members = True
 bot = commands.Bot(command_prefix='!', intents=intents)
@@ -163,4 +162,5 @@ async def rechercherPassageQuete(interaction: discord.Interaction):
 
 
 db.instantiate_db()
+keep_alive()
 bot.run(TOKEN)
