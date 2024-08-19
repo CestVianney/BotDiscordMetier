@@ -34,7 +34,7 @@ class NiveauModal(Modal):
             message = "Aucun utilisateur trouvé."
         
         message += f"\nNiveau pour {self.metier} : {niveau}"
-        await interaction.response.send_message(message, ephemeral=True)
+        await interaction.response.edit_message(content=message, view=None)
 
 class MetierSelectView(View):
     def __init__(self):

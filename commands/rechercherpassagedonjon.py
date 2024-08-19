@@ -36,4 +36,4 @@ class DonjonSelectView(View):
             message = f"Utilisateurs trouvés pour le donjon " + donjon + f" : {' '.join(tagged_users)}"
         else:
             message = "Aucun utilisateur trouvé."   
-        await interaction.response.send_message(message, ephemeral=True)
+        await interaction.response.edit_message(content=message, view=None)

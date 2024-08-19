@@ -37,4 +37,4 @@ class RechercherPassageQueteView(View):
             message = f"Utilisateurs trouvés pour la quête " + quete + f" : {' '.join(tagged_users)}"
         else:
             message = "Aucun utilisateur trouvé."   
-        await interaction.response.send_message(message, ephemeral=True)
+        await interaction.response.edit_message(content=message, view=None)
