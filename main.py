@@ -27,7 +27,7 @@ EK_ID = os.getenv('EK_ID')
 TLB_ID = os.getenv('TLB_ID')
 AUTHORIZED_GUILD_IDS = [EK_ID, TLB_ID]
 
-def guild_only(*guild_ids):
+def guild_only(*AUTHORIZED_GUILD_IDS):
     guild_ids = [int(guild_id) for guild_id in guild_ids]
     def decorator(func):
         @wraps(func)
