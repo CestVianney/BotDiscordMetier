@@ -27,8 +27,8 @@ EK_ID = os.getenv('EK_ID')
 TLB_ID = os.getenv('TLB_ID')
 AUTHORIZED_GUILD_IDS = [EK_ID, TLB_ID]
 
-def guild_only(*AUTHORIZED_GUILD_IDS):
-    guild_ids = [int(guild_id) for guild_id in AUTHORIZED_GUILD_IDS]
+def guild_only_interaction(guild_ids):
+    guild_ids = [int(guild_id) for guild_id in guild_ids]
     def decorator(func):
         @wraps(func)
         async def wrapper(interaction: discord.Interaction, *args, **kwargs):
@@ -36,6 +36,18 @@ def guild_only(*AUTHORIZED_GUILD_IDS):
                 await interaction.response.send_message("Cette commande n'est pas disponible dans cette guilde.", ephemeral=True)
                 return
             return await func(interaction, *args, **kwargs)
+        return wrapper
+    return decorator
+
+def guild_only_context(guild_ids):
+    guild_ids = [int(guild_id) for guild_id in guild_ids]
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(ctx, *args, **kwargs):
+            if ctx.guild.id not in guild_ids:
+                await ctx.send("You are not authorized to use this command in this guild.")
+                return
+            return await func(ctx, *args, **kwargs)
         return wrapper
     return decorator
 
@@ -49,7 +61,7 @@ async def on_ready():
         print(f"An error occurred: {e}")
 
 @bot.tree.command(name="ajouter-metiers", description="Ajoute les niveaux pour chaque métier")
-@guild_only(*AUTHORIZED_GUILD_IDS)
+@guild_only_interaction(*AUTHORIZED_GUILD_IDS)
 async def ajouterMetiers(interaction: discord.Interaction):
     metiersFromDb = db.get_data_from_user(interaction.user.name)
     metiers = [
@@ -77,13 +89,13 @@ async def mesMetiers(interaction: discord.Interaction):
     await interaction.response.send_message(metiers_text, ephemeral=True)
 
 @bot.tree.command(name="rechercher-metier", description="Recherche un métier par niveau")
-@guild_only(*AUTHORIZED_GUILD_IDS)
+@guild_only_interaction(*AUTHORIZED_GUILD_IDS)
 async def rechercherMetier(interaction: discord.Interaction):
     view = recherchermetier.MetierSelectView()
     await interaction.response.send_message("Vous recherchez le métier :", view=view, ephemeral=True)
 
 @bot.tree.command(name="ajouter-passage-donjon", description="Ajoute un donjon pour l'utilisateur")
-@guild_only(*AUTHORIZED_GUILD_IDS)
+@guild_only_interaction(*AUTHORIZED_GUILD_IDS)
 async def ajouterPassageDonjon(interaction: discord.Interaction):
     donjondFromDb = db.get_donjons_from_user(interaction.user.name)
     available_options = [option for option in options if option.label not in donjondFromDb]
@@ -103,7 +115,7 @@ async def mesPassagesDonjons(interaction: discord.Interaction):
     await interaction.response.send_message(donjons_text, ephemeral=True)
 
 @bot.tree.command(name="supprimer-passage-donjon", description="Supprime une liste de donjons pour l'utilisateur")
-@guild_only(*AUTHORIZED_GUILD_IDS)
+@guild_only_interaction(*AUTHORIZED_GUILD_IDS)
 async def supprimerPassageDonjon(interaction: discord.Interaction):
     donjons = db.get_donjons_from_user(interaction.user.name)
     if not donjons:
@@ -113,20 +125,20 @@ async def supprimerPassageDonjon(interaction: discord.Interaction):
     await interaction.response.send_message("Choisissez les donjons à supprimer :", view=view, ephemeral=True)
 
 @bot.tree.command(name="rechercher-passage-donjon", description="Recherche les utilisateurs qui peuvent passer un donjon")
-@guild_only(*AUTHORIZED_GUILD_IDS)
+@guild_only_interaction(*AUTHORIZED_GUILD_IDS)
 async def rechercherPassageDonjon(interaction: discord.Interaction):
     donjons = options 
     view = rechercherpassagedonjon.DonjonSelectView(donjons)
     await interaction.response.send_message("Vous recherchez le donjon :", view=view, ephemeral=True)
 
 @bot.tree.command(name="creer-quete", description="Crée une quête")
-@guild_only(*AUTHORIZED_GUILD_IDS)
+@guild_only_interaction(*AUTHORIZED_GUILD_IDS)
 async def creerQuete(interaction: discord.Interaction, nom_quete: str):
     db.insert_quete(nom_quete)
     await interaction.response.send_message(f"Création de la quête : {nom_quete}", ephemeral=True)
 
 @bot.tree.command(name="quetes-existantes", description="Renvoie les quêtes existantes")
-@guild_only(*AUTHORIZED_GUILD_IDS)
+@guild_only_interaction(*AUTHORIZED_GUILD_IDS)
 async def quetesExistantes(interaction: discord.Interaction):
     quetes = db.get_quetes_existantes()
     quetes.sort()
@@ -137,7 +149,7 @@ async def quetesExistantes(interaction: discord.Interaction):
     await interaction.response.send_message(quetes_text, ephemeral=True)
 
 @bot.tree.command(name="supprimer-quete-existante", description="Supprime une quête existante")
-@guild_only(*AUTHORIZED_GUILD_IDS)
+@guild_only_interaction(*AUTHORIZED_GUILD_IDS)
 async def supprimerQueteExistante(interaction: discord.Interaction):
     if not interaction.user.guild_permissions.administrator:
         await interaction.response.send_message("Vous n'êtes pas autorisé à supprimer une quête.", ephemeral=True)
@@ -150,7 +162,7 @@ async def supprimerQueteExistante(interaction: discord.Interaction):
     await interaction.response.send_message("Choisissez la quête à supprimer :", view=view, ephemeral=True)
 
 @bot.tree.command(name="ajouter-passage-quete", description="Ajoute un passage de quête pour l'utilisateur")
-@guild_only(*AUTHORIZED_GUILD_IDS)
+@guild_only_interaction(*AUTHORIZED_GUILD_IDS)
 async def ajouterPassageQuete(interaction: discord.Interaction):
     quetes = db.get_quetes_existantes()
     if not quetes:
@@ -160,7 +172,7 @@ async def ajouterPassageQuete(interaction: discord.Interaction):
     await interaction.response.send_message("Choisissez la quête pour laquelle vous avez un passage à proposer :", view=view, ephemeral=True)
 
 @bot.tree.command(name="mes-passages-quetes", description="Renvoie les quêtes pour lesquelles l'utilisateur a un passage")
-@guild_only(*AUTHORIZED_GUILD_IDS)
+@guild_only_interaction(*AUTHORIZED_GUILD_IDS)
 async def mesPassagesQuetes(interaction: discord.Interaction):
     quetes = db.get_quetes_from_user(interaction.user.name)
     if not quetes:
@@ -171,7 +183,7 @@ async def mesPassagesQuetes(interaction: discord.Interaction):
 
 
 @bot.tree.command(name="supprimer-passage-quete", description="Supprime un passage de quête pour l'utilisateur")
-@guild_only(*AUTHORIZED_GUILD_IDS)
+@guild_only_interaction(*AUTHORIZED_GUILD_IDS)
 async def supprimerPassageQuete(interaction: discord.Interaction):
     quetes = db.get_quetes_from_user(interaction.user.name)
     if not quetes:
@@ -181,7 +193,7 @@ async def supprimerPassageQuete(interaction: discord.Interaction):
     await interaction.response.send_message("Choisissez la quête à supprimer :", view=view, ephemeral=True)
 
 @bot.tree.command(name="rechercher-passage-quete", description="Recherche les utilisateurs qui peuvent passer une quête")
-@guild_only(*AUTHORIZED_GUILD_IDS)
+@guild_only_interaction(*AUTHORIZED_GUILD_IDS)
 async def rechercherPassageQuete(interaction: discord.Interaction):
     quetes = db.get_quetes_existantes()
     if not quetes:
@@ -191,7 +203,7 @@ async def rechercherPassageQuete(interaction: discord.Interaction):
     await interaction.response.send_message("Vous recherchez la quête :", view=view, ephemeral=True)
 
 @bot.tree.command(name="extract-db", description="Extraction de la base de données")
-@guild_only(*AUTHORIZED_GUILD_IDS)
+@guild_only_interaction(*AUTHORIZED_GUILD_IDS)
 @commands.has_permissions(administrator=True)
 async def extractDb(interaction: discord.Interaction):
     await send_db_file(interaction.channel)
@@ -205,7 +217,7 @@ async def send_db_file(channel):
 
 
 @bot.hybrid_command(name="upload", description="Upload a file")
-@guild_only(*AUTHORIZED_GUILD_IDS)
+@guild_only_interaction(*AUTHORIZED_GUILD_IDS)
 @commands.has_permissions(administrator=True)
 async def upload(ctx, attachment: discord.Attachment):
     await ctx.defer()
