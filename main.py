@@ -27,7 +27,7 @@ EK_ID = os.getenv('EK_ID')
 TLB_ID = os.getenv('TLB_ID')
 AUTHORIZED_GUILD_IDS = [EK_ID, TLB_ID]
 
-def guild_only_interaction(guild_ids):
+def guild_only_interaction(*guild_ids):
     guild_ids = [int(guild_id) for guild_id in guild_ids]
     def decorator(func):
         @wraps(func)
@@ -39,7 +39,7 @@ def guild_only_interaction(guild_ids):
         return wrapper
     return decorator
 
-def guild_only_context(guild_ids):
+def guild_only_context(*guild_ids):
     guild_ids = [int(guild_id) for guild_id in guild_ids]
     def decorator(func):
         @wraps(func)
@@ -203,8 +203,8 @@ async def rechercherPassageQuete(interaction: discord.Interaction):
     await interaction.response.send_message("Vous recherchez la quête :", view=view, ephemeral=True)
 
 @bot.tree.command(name="extract-db", description="Extraction de la base de données")
-@guild_only_interaction(*AUTHORIZED_GUILD_IDS)
 @commands.has_permissions(administrator=True)
+@guild_only_interaction(*AUTHORIZED_GUILD_IDS)
 async def extractDb(interaction: discord.Interaction):
     await send_db_file(interaction.channel)
 
@@ -215,10 +215,8 @@ async def send_db_file(channel):
     except Exception as e:
         await channel.send(f"Une erreur s'est produite lors de l'extraction de la base de données : {e}")
 
-
 @bot.hybrid_command(name="upload", description="Upload a file")
 @guild_only_context(*AUTHORIZED_GUILD_IDS)
-@commands.has_permissions(administrator=True)
 async def upload(ctx, attachment: discord.Attachment):
     await ctx.defer()
     message = await ctx.send("Uploading your file...")
