@@ -1,3 +1,4 @@
+from sched import scheduler
 import discord
 import db.usersmetiersDb as db
 import commands.ajoutermetier as ajoutermetier 
@@ -9,6 +10,8 @@ import commands.ajouterpassagequete as ajouterpassagequete
 import commands.supprimerpassagequete as supprimerpassagequete
 import commands.rechercherpassagequete as rechercherpassagequete
 import commands.supprimerqueteexistante as supprimerqueteexistante
+import io
+import hashlib
 from discord.ext import commands
 from utils.donjons import options
 from functools import wraps
@@ -187,6 +190,53 @@ async def rechercherPassageQuete(interaction: discord.Interaction):
     view = rechercherpassagequete.RechercherPassageQueteView(quetes)
     await interaction.response.send_message("Vous recherchez la quête :", view=view, ephemeral=True)
 
+@bot.tree.command(name="extract-db", description="Extraction de la base de données")
+@guild_only(*AUTHORIZED_GUILD_IDS)
+@commands.has_permissions(administrator=True)
+async def extractDb(interaction: discord.Interaction):
+    await send_db_file(interaction.channel)
+
+async def send_db_file(channel):
+    try:
+        with open('database.db', 'rb') as db_file:
+            await channel.send("Voici votre base de données :", file=discord.File(db_file, 'database.db'))
+    except Exception as e:
+        await channel.send(f"Une erreur s'est produite lors de l'extraction de la base de données : {e}")
+
+
+@bot.hybrid_command(name="upload", description="Upload a file")
+@guild_only(*AUTHORIZED_GUILD_IDS)
+@commands.has_permissions(administrator=True)
+async def upload(ctx, attachment: discord.Attachment):
+    await ctx.defer()
+    message = await ctx.send("Uploading your file...")
+
+    # Lire le fichier attaché
+    file_data = await attachment.read()
+    file_name = "database.db"
+    print(f"Uploading file {file_name}")
+
+    # Calculer le hash du fichier
+    await message.edit(content="Calculating file hash")
+    hash_value = hashlib.sha256(file_data).hexdigest()
+    await message.edit(content=f"File hash: {hash_value}")
+
+    # Calculer la taille du fichier en octets
+    bytes_io = io.BytesIO(file_data)
+    await message.edit(content="Calculating file bytes size")
+    bytes_size = len(bytes_io.getbuffer())
+    await message.edit(content=f"File bytes size: {bytes_size}")
+
+    # Sauvegarder le fichier à la racine du projet
+    file_path = os.path.join(os.getcwd(), file_name)
+    try:
+        with open(file_path, 'wb') as file:
+            file.write(file_data)
+        print(f"File saved as {file_path}")
+        await message.edit(content="File uploaded and saved successfully.")
+    except Exception as e:
+        print(f"Error saving file: {e}")
+        await message.edit(content=f"An error occurred while saving the file: {e}")
 
 db.instantiate_db()
 bot.run(TOKEN)
