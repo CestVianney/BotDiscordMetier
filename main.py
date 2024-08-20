@@ -217,7 +217,7 @@ async def send_db_file(channel):
 
 
 @bot.hybrid_command(name="upload", description="Upload a file")
-@guild_only_interaction(*AUTHORIZED_GUILD_IDS)
+@guild_only_context(*AUTHORIZED_GUILD_IDS)
 @commands.has_permissions(administrator=True)
 async def upload(ctx, attachment: discord.Attachment):
     await ctx.defer()
