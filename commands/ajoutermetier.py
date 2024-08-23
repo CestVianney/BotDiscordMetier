@@ -50,5 +50,5 @@ class MetierNiveauView(View):
         return callback
 
 async def save_niveau(interaction: discord.Interaction, metier, niveau, user):
-    db.insert_data(user.name, metier, niveau)
+    db.insert_data(user.guild.id, user.name, metier, niveau)
     await interaction.response.defer()  # Déférer la réponse pour éviter les erreurs de délai

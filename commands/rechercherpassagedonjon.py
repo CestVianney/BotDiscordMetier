@@ -20,7 +20,7 @@ class DonjonSelectView(View):
     async def select_callback(self, interaction: discord.Interaction):
         selected_donjons = [option for option in interaction.data['values']]
         donjon = selected_donjons[0] 
-        result = db.get_users_for_donjon(donjon)
+        result = db.get_users_for_donjon(interaction.user.guild.id, donjon)
 
         guild = interaction.guild
         members = []

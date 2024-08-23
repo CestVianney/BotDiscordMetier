@@ -21,7 +21,7 @@ class RechercherPassageQueteView(View):
     async def select_callback(self, interaction: discord.Interaction):
         selected_quetes = [option for option in interaction.data['values']]
         quete = selected_quetes[0]
-        result = db.get_users_for_quete(quete)
+        result = db.get_users_for_quete(interaction.user.guild.id, quete)
 
         guild = interaction.guild
         members = []

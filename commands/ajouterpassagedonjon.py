@@ -19,7 +19,8 @@ class DonjonSelectView(View):
 
     async def select_callback(self, interaction: discord.Interaction):
         selected_donjons = [option for option in interaction.data['values']]
-        db.save_donjons_for_user(interaction.user.name, selected_donjons)
+        user = interaction.user
+        db.save_donjons_for_user(user.guild.id, user.name, selected_donjons)
         await interaction.response.edit_message(
             content=f"Donjons sélectionnés : {', '.join(selected_donjons)}",
             view=None  

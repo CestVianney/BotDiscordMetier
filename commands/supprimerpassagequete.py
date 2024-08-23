@@ -20,7 +20,8 @@ class QueteSuppressionView(View):
 
     async def select_callback(self, interaction: discord.Interaction):
         selected_quetes = [option for option in interaction.data['values']]
-        db.delete_quetes_for_user(interaction.user.name, selected_quetes)
+        user = interaction.user
+        db.delete_quetes_for_user(user.guild.id, user.name, selected_quetes)
         await interaction.response.edit_message(
             content=f"Quêtes supprimées : {', '.join(selected_quetes)}",
             view=None

@@ -21,7 +21,8 @@ class QueteSelectView(discord.ui.View):
     async def select_callback(self, interaction: discord.Interaction):
         selected_quetes = [option for option in interaction.data['values']]
         quete = selected_quetes
-        db.save_quetes_for_user(interaction.user.name, quete)
+        user = interaction.user
+        db.save_quetes_for_user(user.guild.id, user.name, quete)
         await interaction.response.edit_message(
             content=f"Vous proposez un passage pour les quêtes suivantes : {quete}",
             view=None

@@ -15,7 +15,7 @@ class NiveauModal(Modal):
             await interaction.response.send_message("Veuillez entrer un niveau valide entre 1 et 200.", ephemeral=True)
             return
         
-        result = db.get_metier_par_niveau(self.metier, int(niveau))
+        result = db.get_metier_par_niveau(interaction.user.guild.id, self.metier, int(niveau))
         
         guild = interaction.guild
         members = []
