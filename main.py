@@ -27,10 +27,20 @@ OWNER_ID = os.getenv('OWNER_ID')
 def is_owner():
     def decorator(func):
         @wraps(func)
-        async def wrapper(interaction: discord.Interaction, *args, **kwargs):
-            if OWNER_ID != str(interaction.user.id):
-                await interaction.response.send_message("Pas touche :)", ephemeral=True)
+        async def wrapper(interaction, *args, **kwargs):
+            user_id = None
+            if isinstance(interaction, discord.Interaction):  
+                user_id = interaction.user.id
+            elif isinstance(interaction, commands.Context):   
+                user_id = interaction.author.id
+
+            if str(user_id) != OWNER_ID:
+                if isinstance(interaction, discord.Interaction):
+                    await interaction.response.send_message("Pas touche :)", ephemeral=True)
+                elif isinstance(interaction, commands.Context):
+                    await interaction.send("Pas touche :)")
                 return
+
             return await func(interaction, *args, **kwargs)
         return wrapper
     return decorator
